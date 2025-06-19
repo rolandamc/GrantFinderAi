@@ -1,7 +1,4 @@
 import streamlit as st
-st.write("Current Secrets:", st.secrets)
-
-import streamlit as st
 import pandas as pd
 import datetime
 import smtplib
@@ -12,7 +9,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 # ===== CONFIGURATION =====
-SHEET_ID = '1iFOkoeS02hq4QhzmWTvW1sEEh4QwDZPt'  # Only the Sheet ID, not the full URL
+SHEET_ID = '1iFOkoeS02hq4QhzmWTvW1sEEh4QwDZPt'  # Only the Sheet ID
 SHEET_NAME = 'Sheet1'
 RECIPIENT_EMAIL = 'rolanda@rsmcduffiecpa.com'
 SENDER_EMAIL = 'rolanda@rsmcduffiecpa.com'
@@ -112,4 +109,3 @@ if st.button("Run Grant Search Now"):
     html = format_html_email(df)
     send_email(html)
     st.success("✅ Daily grant summary saved and emailed!")
-
