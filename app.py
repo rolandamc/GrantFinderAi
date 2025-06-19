@@ -1,4 +1,7 @@
 import streamlit as st
+st.write("Current Secrets:", st.secrets)
+
+import streamlit as st
 import pandas as pd
 import datetime
 import smtplib
