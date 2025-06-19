@@ -107,3 +107,9 @@ st.title("📡 Grant Finder AI Agent")
 
 if st.button("🔍 Run Grant Search Now"):
     df = scrape_sample_grants()
+    st.write("Grants Found:", df)
+
+    save_to_google_sheet(df)
+    html = format_html_email(df)
+    send_email(html)
+    st.success("✅ Daily grant summary saved and emailed!")
