@@ -107,4 +107,3 @@ st.title("📡 Grant Finder AI Agent")
 
 if st.button("🔍 Run Grant Search Now"):
     df = scrape_sample_grants()
-    st.wr
