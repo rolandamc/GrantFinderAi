@@ -54,17 +54,17 @@ def save_to_google_sheet(df):
     try:
         service = build('sheets', 'v4', credentials=credentials)
         sheet = service.spreadsheets()
-        values = df.values.tolist()  # Don't include column headers for appending
+        values = [df.columns.tolist()] + df.astype(str).values.tolist()
         body = {'values': values}
-
-        sheet.values().append(
+        result = sheet.values().append(
             spreadsheetId=SHEET_ID,
-            range=SHEET_NAME,
+            range=f"{SHEET_NAME}",
             valueInputOption="RAW",
             insertDataOption="INSERT_ROWS",
             body=body
         ).execute()
-        st.success("✅ Saved to Google Sheet!")
+
+        st.success("✅ Data successfully written to Google Sheet!")
     except Exception as e:
         st.error(f"❌ Failed to save to Google Sheet: {e}")
 
