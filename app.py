@@ -9,13 +9,13 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 # ===== CONFIGURATION =====
-SHEET_ID = '1iFOkoeS02hq4QhzmWTvW1sEEh4QwDZPt'  # Google Sheet ID
+SHEET_ID = '1iFOkoeS02hq4QhzmWTvW1sEEh4QwDZPt'
 SHEET_NAME = 'Sheet1'
 RECIPIENT_EMAIL = 'rolanda@rsmcduffiecpa.com'
 SENDER_EMAIL = 'rolanda@rsmcduffiecpa.com'
 SUBJECT_LINE = f"🟢 New Grants for Nonprofits – {datetime.date.today().strftime('%m/%d/%Y')}"
 
-# ===== LOAD CREDENTIALS FROM SECRETS =====
+# ===== LOAD GOOGLE SERVICE ACCOUNT CREDENTIALS =====
 creds_dict = st.secrets["gcp_service_account"]
 credentials = service_account.Credentials.from_service_account_info(
     creds_dict,
@@ -25,7 +25,7 @@ credentials = service_account.Credentials.from_service_account_info(
     ]
 )
 
-# ===== FUNCTION: SCRAPE SAMPLE GRANTS (Simulated Data) =====
+# ===== FUNCTION: SCRAPE SAMPLE GRANTS =====
 def scrape_sample_grants():
     today = datetime.date.today().strftime('%m/%d/%Y')
     return pd.DataFrame([
@@ -65,7 +65,7 @@ def save_to_google_sheet(df):
     except Exception as e:
         st.error(f"Failed to save to Google Sheet: {e}")
 
-# ===== FUNCTION: FORMAT HTML TABLE =====
+# ===== FUNCTION: FORMAT HTML EMAIL =====
 def format_html_email(df):
     html = """
     <html><body>
@@ -93,7 +93,7 @@ def send_email(html_content):
 
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-            server.login(SENDER_EMAIL, st.secrets["gcp_service_account"]["gmail_app_password"])
+            server.login(SENDER_EMAIL, st.secrets["gmail"]["app_password"])
             server.sendmail(SENDER_EMAIL, RECIPIENT_EMAIL, message.as_string())
     except Exception as e:
         st.error(f"Failed to send email: {e}")
