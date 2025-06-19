@@ -3,23 +3,20 @@ import pandas as pd
 import datetime
 import smtplib
 import ssl
-import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 # ===== CONFIGURATION =====
-SHEET_ID = '1iFOkoeS02hq4QhzmWTvW1sEEh4QwDZPt'  # Google Sheet ID only
+SHEET_ID = '1iFOkoeS02hq4QhzmWTvW1sEEh4QwDZPt'  # Google Sheet ID
 SHEET_NAME = 'Sheet1'
 RECIPIENT_EMAIL = 'rolanda@rsmcduffiecpa.com'
 SENDER_EMAIL = 'rolanda@rsmcduffiecpa.com'
-SUBJECT_LINE = f"⬤ New Grants for Nonprofits – {datetime.date.today().strftime('%m/%d/%Y')}"
+SUBJECT_LINE = f"🟢 New Grants for Nonprofits – {datetime.date.today().strftime('%m/%d/%Y')}"
 
-# ===== LOAD SERVICE ACCOUNT JSON CREDENTIALS =====
-with open("service_account.json", "r") as f:
-    creds_dict = json.load(f)
-
+# ===== LOAD CREDENTIALS FROM SECRETS =====
+creds_dict = st.secrets["gcp_service_account"]
 credentials = service_account.Credentials.from_service_account_info(
     creds_dict,
     scopes=[
@@ -96,7 +93,7 @@ def send_email(html_content):
 
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-            server.login(SENDER_EMAIL, "gfzr sxaf cksn evbg")  # Replace with your actual app password
+            server.login(SENDER_EMAIL, st.secrets["gcp_service_account"]["gmail_app_password"])
             server.sendmail(SENDER_EMAIL, RECIPIENT_EMAIL, message.as_string())
     except Exception as e:
         st.error(f"Failed to send email: {e}")
