@@ -1,6 +1,6 @@
-from datetime import date
-import pandas as pd
 import streamlit as st
+import pandas as pd
+import datetime
 import smtplib
 import ssl
 from email.mime.multipart import MIMEMultipart
@@ -9,13 +9,13 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 # ===== CONFIGURATION =====
-SHEET_ID = '1iFOkoeS02hq4QhzmWTvW1sEEh4QwDZPt'
-SHEET_NAME = 'Sheet1'
+SHEET_ID = '1iFOkoeS02hq4QhzmWTvW1sEEh4QwDZPt'  # Only the Sheet ID
+SHEET_NAME = 'Sheet1'  # Tab name in the Google Sheet
 RECIPIENT_EMAIL = 'rolanda@rsmcduffiecpa.com'
 SENDER_EMAIL = 'rolanda@rsmcduffiecpa.com'
-SUBJECT_LINE = f"🟢 New Grants for Nonprofits – {date.today().strftime('%m/%d/%Y')}"
+SUBJECT_LINE = f"🟢 New Grants for Nonprofits – {datetime.date.today().strftime('%m/%d/%Y')}"
 
-# ===== LOAD CREDENTIALS FROM SECRETS =====
+# ===== LOAD CREDENTIALS FROM SECRETS.TOML =====
 creds_dict = st.secrets["gcp_service_account"]
 credentials = service_account.Credentials.from_service_account_info(
     creds_dict,
@@ -25,9 +25,9 @@ credentials = service_account.Credentials.from_service_account_info(
     ]
 )
 
-# ===== FUNCTION: SCRAPE SAMPLE GRANTS =====
+# ===== FUNCTION: SCRAPE SAMPLE GRANTS (Simulated Data) =====
 def scrape_sample_grants():
-    today = date.today().strftime('%m/%d/%Y')
+    today = datetime.date.today().strftime('%m/%d/%Y')
     return pd.DataFrame([
         {
             'Grant Name': 'Community Empowerment Grant',
@@ -54,24 +54,29 @@ def save_to_google_sheet(df):
     try:
         service = build('sheets', 'v4', credentials=credentials)
         sheet = service.spreadsheets()
+
         values = df.values.tolist()
-        body = {'values': values}
+        body = {
+            'values': values
+        }
+
         sheet.values().append(
             spreadsheetId=SHEET_ID,
-            range=f"{SHEET_NAME}!A1",
-            valueInputOption="RAW",
+            range=SHEET_NAME,
+            valueInputOption="USER_ENTERED",
             insertDataOption="INSERT_ROWS",
             body=body
         ).execute()
+
         st.success("✅ Saved to Google Sheet!")
     except Exception as e:
         st.error(f"❌ Failed to save to Google Sheet: {e}")
 
-# ===== FUNCTION: FORMAT HTML TABLE =====
+# ===== FUNCTION: FORMAT EMAIL HTML CONTENT =====
 def format_html_email(df):
     html = """
     <html><body>
-    <h3>New Grant Opportunities:</h3>
+    <h3>🟢 New Grant Opportunities:</h3>
     <table border="1" cellspacing="0" cellpadding="4">
     <tr>{}</tr>
     {}
@@ -90,6 +95,7 @@ def send_email(html_content):
         message["Subject"] = SUBJECT_LINE
         message["From"] = SENDER_EMAIL
         message["To"] = RECIPIENT_EMAIL
+
         part = MIMEText(html_content, "html")
         message.attach(part)
 
@@ -97,17 +103,22 @@ def send_email(html_content):
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
             server.login(SENDER_EMAIL, st.secrets["gmail"]["app_password"])
             server.sendmail(SENDER_EMAIL, RECIPIENT_EMAIL, message.as_string())
+
         st.success("📧 Email sent successfully!")
     except Exception as e:
         st.error(f"❌ Failed to send email: {e}")
 
 # ===== STREAMLIT UI =====
 st.title("Grant Finder AI Agent")
+st.markdown("Click the button below to run today's grant search and get results emailed + saved to Google Sheets.")
 
 if st.button("Run Grant Search Now"):
     df = scrape_sample_grants()
-    st.write("📊 Grants Found:", df)
+    st.write("🔍 Grants Found:", df)
 
     save_to_google_sheet(df)
+
     html = format_html_email(df)
     send_email(html)
+
+    st.success("✅ Daily grant summary saved and emailed!")
